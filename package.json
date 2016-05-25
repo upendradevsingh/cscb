@@ -1,0 +1,33 @@
+{
+  "name": "cscb",
+  "version": "0.0.1",
+  "description": "Stylesheet cache bust",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/upendradevsingh/cscb.git"
+  },
+  "keywords": [
+    "css",
+    "stylesheet",
+    "cache",
+    "busting"
+  ],
+  "author": "Upendra Dev Singh",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/upendradevsingh/cscb/issues"
+  },
+  "homepage": "https://github.com/upendradevsingh/cscb#readme",
+  "dependencies": {
+    "fs-extra": "^0.30.0",
+    "jsonfile": "^2.3.1"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "mocha": "^2.5.2"
+  }
+}
