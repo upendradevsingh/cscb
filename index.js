@@ -8,7 +8,7 @@ var css = path.resolve(__dirname, '../public/live/css');
 var crypto = require('crypto');
 var jsonfile = require('jsonfile')
 
-function done(err, results) {
+function exec(err, results) {
     if(err){
         console.log(err);
         return;
@@ -18,40 +18,50 @@ function done(err, results) {
 var results = {};
 
 var walk = function(config) {
-    var dir = config.src;
-    fs.readdir(dir, function(err, list) {
-        if (err) { return done(err); }
-        var pending = list.length;
-        if (!pending) { return done(null, results); }
-        list.forEach(function(file) {
-            fs.stat(dir + '/' + file, function(err, stat) {
-                if (stat && stat.isDirectory())     {
-                    walk(dir + '/' + file, function(err, res) {
-                        if (!--pending){ done(null, results); }
-                    });
-                } else {
-                    var fname = dir + "/" + file;
-                // put your hash generation here
-                generateHash(fname, function (e, hash) {
-                    if (e) done(e);
-                    file = file.split('.');
-                    results[file[0]] = hash;
-                    try {
-                        fs.copySync(fname, dir + '/' + hash + '.' + file[1]);
-                    } catch (err) {
-                        console.error(err)
-                    }
-                    if (!--pending) {
-                        jsonfile.writeFile(config.dest, results, {spaces: 2}, function(err) {
-                            console.error(err);
-                        });
-                    }
-                });
+    var dir = config.src; // Source directory
+    var done = config.cb || exec; // callback
+
+    var list = fs.readdirSync(dir); // File list in the source directory
+    var pending = list.length;
+
+    if (!pending) {
+     return done(null, results); 
+    }
+
+    list.forEach(function(file) {
+        var fname = dir + "/" + file;
+        var stat = fs.statSync(fname);
+
+        if (stat && stat.isDirectory()){
+            walk(fname, function(err, res) {
+                if (!--pending){ done(null, results); }
+            });
+        } else {
+            generateHash(fname, function (e, hash) {
+                if (e){
+                    done(e)
+                }
+                file = file.split('.');
+                results[file[0]] = hash;
+                try {
+                    fs.copySync(fname, dir + '/' + hash + '.' + file[1]);
+                } catch (err) {
+                    console.error(err)
+                }
+                if (!--pending) {
+                    jsonfile.writeFileSync(config.dest, results, {spaces: 2});
                 }
             });
-        });
+        }
+        
     });
+    
 };
+
+/**
+ * Generate hash of a file content
+ */
+
 
 function generateHash (filename, callback) {
     var algorithm = 'sha1';
@@ -62,7 +72,7 @@ function generateHash (filename, callback) {
         hash.update(data);
     });
     fileStream.on('end', function() {
-        var digest = hash.update(crypto.randomBytes(256)).digest('hex');
+        var digest = hash.digest('hex');
         callback(null, digest);
     });
 }
